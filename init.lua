@@ -200,12 +200,10 @@ else
   vim.keymap.set('n', '<C-u>', '<C-u>zz')
 
   -- open a terminal to the side
-  vim.keymap.set('n', '<space>st', function()
-    vim.cmd.new()
+  vim.keymap.set('n', '<leader>m', function()
     vim.cmd.term()
-    vim.cmd.wincmd 'L'
     vim.fn.feedkeys 'i'
-  end, { desc = 'Open new Terminal' })
+  end, { desc = 'Open new Ter[m]inal' })
 
   -- TIP: Disable arrow keys in normal mode
   -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
