@@ -226,6 +226,18 @@ else
   vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
   vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
 
+  -- NOTE: I switch , and ; in normal mode to have consistent shift behavior in combination with f/F
+  vim.keymap.set('n', ';', ',', { desc = 'Swap: repeat find forward' })
+  vim.keymap.set('n', ',', ';', { desc = 'Swap: repeat find backward' })
+  vim.keymap.set('o', ';', ',', { desc = 'Swap: repeat find forward (operator-pending)' })
+  vim.keymap.set('o', ',', ';', { desc = 'Swap: repeat find backward (operator-pending)' })
+  vim.keymap.set('x', ';', ',', { desc = 'Swap: repeat find forward (visual)' })
+  vim.keymap.set('x', ',', ';', { desc = 'Swap: repeat find backward (visual)' })
+
+  -- Preserve behavior when repeating the last change with dot ('.')
+  vim.keymap.set('n', ';.', ',.', { desc = 'Swap ;. -> ,.' })
+  vim.keymap.set('n', ',.', ';.', { desc = 'Swap ,. -> ;.' })
+
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
 
