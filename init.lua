@@ -516,6 +516,7 @@ else
               'build',
               'dist',
               'pnpm-lock.yaml',
+              '.git',
             },
           },
           -- pickers = {}
