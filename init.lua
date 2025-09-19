@@ -687,6 +687,10 @@ else
             --  the definition of its *type*, not where it was *defined*.
             map('grt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
 
+            map('K', function()
+              vim.lsp.buf.hover { border = 'rounded' }
+            end, 'Show docs in hover')
+
             -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
             ---@param client vim.lsp.Client
             ---@param method vim.lsp.protocol.Method
@@ -900,6 +904,7 @@ else
           typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
           css = { 'prettier', 'stylelint' },
           scss = { 'prettier', 'stylelint' },
+          rust = { 'rustfmt', lsp_format = 'fallback' },
         },
       },
     },
@@ -1174,6 +1179,10 @@ else
         vim.keymap.set('n', '<leader>g', ':Neogit<CR>', { desc = 'Open Neo[g]it', silent = true })
       end,
     },
+  }, {
+    'mrcjkb/rustaceanvim',
+    version = '^6', -- Recommended
+    lazy = false, -- This plugin is already lazy
   }, {
     ui = {
       -- If you are using a Nerd Font: set icons to an empty table which will use the

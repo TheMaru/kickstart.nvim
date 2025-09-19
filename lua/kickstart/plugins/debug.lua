@@ -123,18 +123,91 @@ return {
     -- Change breakpoint icons
     -- vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
     -- vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
-    -- local breakpoint_icons = vim.g.have_nerd_font
-    --     and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
-    --   or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
-    -- for type, icon in pairs(breakpoint_icons) do
-    --   local tp = 'Dap' .. type
-    --   local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
-    --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
-    -- end
+    local breakpoint_icons = vim.g.have_nerd_font
+        and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
+      or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
+    for type, icon in pairs(breakpoint_icons) do
+      local tp = 'Dap' .. type
+      local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
+      vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
+    end
+
+    -- Rust setup
+    local dap = require 'dap'
+
+    dap.adapters.codelldb = {
+      type = 'server',
+      port = '${port}',
+      executable = {
+        command = vim.fn.expand '~/.local/share/nvim/mason/packages/codelldb/extension/adapter/codelldb',
+        args = { '--port', '${port}' },
+      },
+    }
+
+    dap.configurations.rust = {
+      {
+        name = 'Launch Rust executable',
+        type = 'codelldb',
+        request = 'launch',
+        program = function()
+          -- suggest target/debug/<crate-name> by default
+          local cwd = vim.fn.getcwd()
+          local default = cwd .. '/target/debug/' .. vim.fn.expand '%:t:r'
+          return vim.fn.input('Path to executable: ', default, 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+        args = {},
+        -- optional: run `cargo build` before launching
+        preLaunchTask = function()
+          vim.notify('Building with cargo...', vim.log.levels.INFO)
+          local res = vim.fn.system 'cargo build'
+          if vim.v.shell_error ~= 0 then
+            vim.notify('cargo build failed: ' .. res, vim.log.levels.ERROR)
+          end
+        end,
+      },
+    }
 
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
     dap.listeners.before.event_exited['dapui_config'] = dapui.close
+
+    local function map(mode, lhs, rhs, opts)
+      opts = vim.tbl_extend('force', { noremap = true, silent = true }, opts or {})
+      vim.keymap.set(mode, lhs, rhs, opts)
+    end
+
+    local function unmap(lhs, mode)
+      mode = mode or 'n'
+      pcall(vim.keymap.del, mode, lhs)
+    end
+
+    dap.listeners.after.event_initialized['custom/keys'] = function()
+      -- global mappings active while session runs
+      map('n', '<Right>', function()
+        dap.step_into()
+      end, { desc = 'Debug: Step Into' })
+      map('n', '<Down>', function()
+        dap.step_over()
+      end, { desc = 'Debug: Step Over' })
+      map('n', '<Left>', function()
+        dap.step_out()
+      end, { desc = 'Debug: Step Out' })
+      map('n', '<Up>', function()
+        dap.restart_frame()
+      end, { desc = 'Debug: Restart Frame' })
+    end
+
+    local function remove_debug_keys()
+      unmap '<Right>'
+      unmap '<Down>'
+      unmap '<Left>'
+      unmap '<Up>'
+    end
+
+    dap.listeners.before.event_terminated['custom/keys'] = remove_debug_keys
+    dap.listeners.before.event_exited['custom/keys'] = remove_debug_keys
 
     -- Install golang specific config
     require('dap-go').setup {
